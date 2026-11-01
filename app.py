@@ -9,15 +9,16 @@ st.set_page_config(page_title="AirScript Live", layout="wide")
 st.title("AirScript - Touchless Air Writing")
 st.markdown("Apna webcam start karein aur hawa me ungli se likhein.")
 
+# Safe initialization
 mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
-hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 
 
 class AirScriptTransformer(VideoTransformerBase):
     def __init__(self):
         self.canvas = None
         self.prev_x, self.prev_y = 0, 0
+        self.hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
@@ -28,7 +29,7 @@ class AirScriptTransformer(VideoTransformerBase):
             self.canvas = np.zeros((h, w, 3), np.uint8)
 
         rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = hands.process(rgb_img)
+        results = self.hands.process(rgb_img)
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
@@ -42,11 +43,17 @@ class AirScriptTransformer(VideoTransformerBase):
                 x_mid = int(hand_landmarks.landmark[12].x * w)
                 y_mid = int(hand_landmarks.landmark[12].y * h)
 
-                # Drawing mode: index up, middle down
+                # Index finger up, middle down -> Drawing Mode
                 if y < y_mid:
                     if self.prev_x == 0 and self.prev_y == 0:
                         self.prev_x, self.prev_y = x, y
-                    cv2.line(self.canvas, (self.prev_x, self.prev_y), (0, 255, 255), 6)
+                    cv2.line(
+                        self.canvas,
+                        (self.prev_x, self.prev_y),
+                        (x, y),
+                        (0, 255, 255),
+                        6,
+                    )
                     self.prev_x, self.prev_y = x, y
                 else:
                     self.prev_x, self.prev_y = 0, 0
