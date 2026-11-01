@@ -4,14 +4,14 @@ import av
 import cv2
 import numpy as np
 import mediapipe as mp
+from mediapipe.python.solutions import hands as mp_hands
+from mediapipe.python.solutions import drawing_utils as mp_draw
 
 st.set_page_config(page_title="AirScript Live", layout="wide")
 st.title("AirScript - Touchless Air Writing")
 st.markdown("Apna webcam start karein aur hawa me ungli se likhein.")
 
-mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7)
-mp_draw = mp.solutions.drawing_utils
 
 
 class AirScriptTransformer(VideoTransformerBase):
@@ -34,15 +34,15 @@ class AirScriptTransformer(VideoTransformerBase):
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                # Index finger tip landmark (id: 8)
+                # Index finger tip (id: 8)
                 x = int(hand_landmarks.landmark[8].x * w)
                 y = int(hand_landmarks.landmark[8].y * h)
 
-                # Middle finger tip landmark (id: 12)
+                # Middle finger tip (id: 12)
                 x_mid = int(hand_landmarks.landmark[12].x * w)
                 y_mid = int(hand_landmarks.landmark[12].y * h)
 
-                # Agar index finger upar hai aur middle finger niche -> Drawing Mode
+                # Drawing mode: index up, middle down
                 if y < y_mid:
                     if self.prev_x == 0 and self.prev_y == 0:
                         self.prev_x, self.prev_y = x, y
@@ -57,7 +57,7 @@ class AirScriptTransformer(VideoTransformerBase):
                 else:
                     self.prev_x, self.prev_y = 0, 0
 
-        # Canvas aur webcam video merge
+        # Merge canvas with webcam feed
         img_gray = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2GRAY)
         _, img_inv = cv2.threshold(img_gray, 20, 255, cv2.THRESH_BINARY_INV)
         img_inv = cv2.cvtColor(img_inv, cv2.COLOR_GRAY2BGR)
