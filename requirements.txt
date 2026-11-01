@@ -4,3 +4,9 @@ numpy
 pytesseract
 pyttsx3
 Pillow
+streamlit
+streamlit-webrtc
+opencv-python-headless
+mediapipe
+numpy
+av
