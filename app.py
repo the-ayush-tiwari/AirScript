@@ -4,13 +4,13 @@ import av
 import cv2
 import numpy as np
 import mediapipe as mp
-from mediapipe.python.solutions import hands as mp_hands
-from mediapipe.python.solutions import drawing_utils as mp_draw
 
 st.set_page_config(page_title="AirScript Live", layout="wide")
 st.title("AirScript - Touchless Air Writing")
 st.markdown("Apna webcam start karein aur hawa me ungli se likhein.")
 
+mp_hands = mp.solutions.hands
+mp_draw = mp.solutions.drawing_utils
 hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 
 
@@ -46,13 +46,7 @@ class AirScriptTransformer(VideoTransformerBase):
                 if y < y_mid:
                     if self.prev_x == 0 and self.prev_y == 0:
                         self.prev_x, self.prev_y = x, y
-                    cv2.line(
-                        self.canvas,
-                        (self.prev_x, self.prev_y),
-                        (x, y),
-                        (0, 255, 255),
-                        6,
-                    )
+                    cv2.line(self.canvas, (self.prev_x, self.prev_y), (0, 255, 255), 6)
                     self.prev_x, self.prev_y = x, y
                 else:
                     self.prev_x, self.prev_y = 0, 0
